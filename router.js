@@ -13,7 +13,6 @@ const server = net.createServer(function (client) {
     let re = /\0/g;
 	let str = data.toString().replace(re, "");
     let msg = JSON.parse(str);
-	clients[msg.code] = client; 
 
 	switch (msg.code) {
             case 'booth':
@@ -26,9 +25,11 @@ const server = net.createServer(function (client) {
 				writeData(clients['process'], str); 
                 break;
 
-            case 'process':
-                console.log('02 요청메시지 수신');
-                writeData(clients[msg.code], 'hello'); 
+            case 'register':
+				clients[msg.service] = client; 
+                console.log(msg.service  + ' 서비스 등록 성공');
+				let register = {code: 'register', response: 'successful'}; 
+                writeData(clients[msg.service], JSON.stringify(register)); 
                 break;
 
             default:
