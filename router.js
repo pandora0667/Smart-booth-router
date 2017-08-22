@@ -16,13 +16,20 @@ const server = net.createServer(function (client) {
 
 	switch (msg.code) {
             case 'booth':
-                console.log('booth sensor data input'); 	
-				writeData(clients['process'], str); 
+                //console.log('booth sensor data input');
+				// process data send
+				let sensorBooth = {code: 'median', device: 'booth', value: msg.smoke}; 
+				writeData(clients['process'], JSON.stringify(sensorBooth)); 
+				
+				// homepage data send
+				let undefinedSend = {code: 'undefined', trash: msg.trash, lat: msg.lat, lon: msg.lon};
                 break;
 
             case 'kiosk' :
-                console.log('kiosk sensor data input');
-				writeData(clients['process'], str); 
+                //console.log('kiosk sensor data input');
+				// process data send 
+				let sensorKiosk = {code: 'median', device: 'kiosk', value: msg.smoke}; 
+				writeData(clients['process'], JSON.stringify(sensorKiosk)); 
                 break;
 
             case 'register':
@@ -31,10 +38,18 @@ const server = net.createServer(function (client) {
 				let register = {code: 'register', response: 'successful'}; 
                 writeData(clients[msg.service], JSON.stringify(register)); 
                 break;
+			
+			case 'median': 
+				if (msg.device === 'booth') {
+					console.log('booth median  ' + msg.value); 
+				} else {
+					console.log('kiosk median  ' + msg.value);
+				}
+				break;
 
             default:
                 console.log("error");
-                let error = {code: '10', title: 'undefined', message: 'undefined'};
+                let error = {code: 'error', title: 'undefined', message: 'undefined'};
                 broadcastData(JSON.stringify(error));
                 break;
         }
