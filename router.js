@@ -13,21 +13,16 @@ const server = net.createServer(function (client) {
     let re = /\0/g;
 	let str = data.toString().replace(re, "");
     let msg = JSON.parse(str);
-
+	
 	switch (msg.code) {
             case 'booth':
-                //console.log('booth sensor data input');
-				// process data send
 				let sensorBooth = {code: 'median', device: 'booth', value: msg.smoke}; 
 				writeData(clients['process'], JSON.stringify(sensorBooth)); 
 				
-				// homepage data send
 				let undefinedSend = {code: 'undefined', trash: msg.trash, lat: msg.lat, lon: msg.lon};
                 break;
 
             case 'kiosk' :
-                //console.log('kiosk sensor data input');
-				// process data send 
 				let sensorKiosk = {code: 'median', device: 'kiosk', value: msg.smoke}; 
 				writeData(clients['process'], JSON.stringify(sensorKiosk)); 
                 break;
