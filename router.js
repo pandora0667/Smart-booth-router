@@ -1,8 +1,26 @@
 const net = require('net');
+// const app = require('express')();
+// const server = require('http').Server(app);
+// const io = require('socket.io')(server);
+// server.listen(5002);
+
+const express = require('express');
+const app = express();
+const http = require('http').createServer(app).listen(5002, function () {
+    console.log('Web socket server running at 5002 port!!')
+});
+const io = require('socket.io').listen(http);
 
 let clients = new Array();
 
-const server = net.createServer(function (client) {
+setTimeout(function () {
+    io.sockets.on('connection', function (socket) {
+        console.log('   --- Web socket connection!! ---');
+        socket.emit('connected', 123);
+    });
+});
+
+const tcpServer = net.createServer(function (client) {
     console.log('Client connection: ');
     console.log('   local = %s:%s', client.localAddress, client.localPort);
     console.log('   remote = %s:%s', client.remoteAddress, client.remotePort);
@@ -19,7 +37,8 @@ const server = net.createServer(function (client) {
 				let sensorBooth = {code: 'median', device: 'booth', value: msg.smoke}; 
 				writeData(clients['process'], JSON.stringify(sensorBooth)); 
 				
-				let undefinedSend = {code: 'undefined', trash: msg.trash, lat: msg.lat, lon: msg.lon};
+				let boothSend = {trash: msg.trash, lat: msg.lat, lon: msg.lon};
+				io.sockets.emit('gps', JSON.stringify(boothSend));
                 break;
 
             case 'kiosk' :
@@ -36,7 +55,7 @@ const server = net.createServer(function (client) {
 			
 			case 'median': 
 				if (msg.device === 'booth') {
-					console.log('booth median  ' + msg.value); 
+					// console.log('booth median  ' + msg.value);
 				} else {
 					console.log('kiosk median  ' + msg.value);
 				}
@@ -53,7 +72,7 @@ const server = net.createServer(function (client) {
 client.on('end', function () {
         console.log('Client disconnected');
         clients.splice(this);
-        server.getConnections(function (err, count) {
+        tcpServer.getConnections(function (err, count) {
         console.log('Remaining Connections: ' + count);
         });
     });
@@ -65,12 +84,12 @@ client.on('end', function () {
     });
 });
 
-server.listen(5001, function () {
-    console.log('Server listening: ' + JSON.stringify(server.address()));
-    server.on('close', function () {
+tcpServer.listen(5001, function () {
+    console.log('Server listening: ' + JSON.stringify(tcpServer.address()));
+    tcpServer.on('close', function () {
         console.log('Server Terminated');
     });
-    server.on('error', function (err) {
+    tcpServer.on('error', function (err) {
         console.log('Server Error: ', JSON.stringify(err));
     });
 });
