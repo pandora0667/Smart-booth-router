@@ -1,9 +1,4 @@
 const net = require('net');
-// const app = require('express')();
-// const server = require('http').Server(app);
-// const io = require('socket.io')(server);
-// server.listen(5002);
-
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app).listen(5002, function () {
@@ -27,39 +22,39 @@ const tcpServer = net.createServer(function (client) {
     client.setEncoding('utf8');
 
     client.on('data', function (data) {
-     // data parsing
-    let re = /\0/g;
-	let str = data.toString().replace(re, "");
-    let msg = JSON.parse(str);
-	
-	switch (msg.code) {
+        // data parsing
+        let re = /\0/g;
+        let str = data.toString().replace(re, "");
+        let msg = JSON.parse(str);
+
+        switch (msg.code) {
             case 'booth':
-				let sensorBooth = {code: 'median', device: 'booth', value: msg.smoke}; 
-				writeData(clients['process'], JSON.stringify(sensorBooth)); 
-				
-				let boothSend = {trash: msg.trash, lat: msg.lat, lon: msg.lon};
-				io.sockets.emit('gps', JSON.stringify(boothSend));
+                let sensorBooth = {code: 'median', device: 'booth', value: msg.smoke};
+                writeData(clients['process'], JSON.stringify(sensorBooth));
+
+                let boothSend = {trash: msg.trash, lat: msg.lat, lon: msg.lon};
+                io.sockets.emit('gps', JSON.stringify(boothSend));
                 break;
 
             case 'kiosk' :
-				let sensorKiosk = {code: 'median', device: 'kiosk', value: msg.smoke}; 
-				writeData(clients['process'], JSON.stringify(sensorKiosk)); 
+                let sensorKiosk = {code: 'median', device: 'kiosk', value: msg.smoke};
+                writeData(clients['process'], JSON.stringify(sensorKiosk));
                 break;
 
             case 'register':
-				clients[msg.service] = client; 
-                console.log(msg.service  + ' 서비스 등록 성공');
-				let register = {code: 'register', response: 'successful'}; 
-                writeData(clients[msg.service], JSON.stringify(register)); 
+                clients[msg.service] = client;
+                console.log(msg.service + ' 서비스 등록 성공');
+                let register = {code: 'register', response: 'successful'};
+                writeData(clients[msg.service], JSON.stringify(register));
                 break;
-			
-			case 'median': 
-				if (msg.device === 'booth') {
-					// console.log('booth median  ' + msg.value);
-				} else {
-					console.log('kiosk median  ' + msg.value);
-				}
-				break;
+
+            case 'median':
+                if (msg.device === 'booth') {
+                    // console.log('booth median  ' + msg.value);
+                } else {
+                    console.log('kiosk median  ' + msg.value);
+                }
+                break;
 
             default:
                 console.log("error");
@@ -69,11 +64,11 @@ const tcpServer = net.createServer(function (client) {
         }
     });
 
-client.on('end', function () {
+    client.on('end', function () {
         console.log('Client disconnected');
         clients.splice(this);
         tcpServer.getConnections(function (err, count) {
-        console.log('Remaining Connections: ' + count);
+            console.log('Remaining Connections: ' + count);
         });
     });
     client.on('error', function (err) {
