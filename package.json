@@ -2,7 +2,12 @@
   "name": "smart-booth-router",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "router.js",
+  "dependencies": {
+    "express": "^4.15.4",
+    "socket.io": "^2.0.3"
+  },
+  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -11,12 +16,5 @@
     "url": "https://git.wisoft.io/jusk2/Smart-booth-router.git"
   },
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-<<<<<<< HEAD
-=======
-    "express": "^4.15.4",
->>>>>>> cd54110f5fa8a32e9a6bead93d396ece926755b5
-    "socket.io": "^2.0.3"
-  }
+  "license": "ISC"
 }

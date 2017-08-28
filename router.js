@@ -50,9 +50,9 @@ const tcpServer = net.createServer(function (client) {
 
             case 'median':
                 if (msg.device === 'booth') {
-                    // console.log('booth median  ' + msg.value);
+                    io.sockets.emit('booth', msg.value); 
                 } else {
-                    console.log('kiosk median  ' + msg.value);
+					io.sockets.emit('kiosk', msg.value); 
                 }
                 break;
 
