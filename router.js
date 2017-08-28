@@ -42,6 +42,20 @@ const server = net.createServer(function (client) {
 				}
 				break;
 
+			case 'login':
+				console.log(msg);
+				writeData(clients['process'], JSON.stringify(msg)); 
+				break; 
+
+			case 'result': 
+				console.log(msg); 
+				writeData(clients['service'], JSON.stringify(msg)); 
+				break; 
+
+			case 'sign': 
+				console.log(msg); 
+				break; 
+
             default:
                 console.log("error");
                 let error = {code: 'error', title: 'undefined', message: 'undefined'};
