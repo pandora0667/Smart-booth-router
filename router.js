@@ -1,46 +1,60 @@
 const net = require('net');
+const express = require('express');
+const app = express();
+const http = require('http').createServer(app).listen(5002, function () {
+    console.log('Web socket server running at 5002 port!!')
+});
+const io = require('socket.io').listen(http);
 
 let clients = new Array();
 
-const server = net.createServer(function (client) {
+setTimeout(function () {
+    io.sockets.on('connection', function (socket) {
+        console.log('   --- Web socket connection!! ---');
+        socket.emit('connected', 123);
+    });
+});
+
+const tcpServer = net.createServer(function (client) {
     console.log('Client connection: ');
     console.log('   local = %s:%s', client.localAddress, client.localPort);
     console.log('   remote = %s:%s', client.remoteAddress, client.remotePort);
     client.setEncoding('utf8');
 
     client.on('data', function (data) {
-     // data parsing
-    let re = /\0/g;
-	let str = data.toString().replace(re, "");
-    let msg = JSON.parse(str);
-	
-	switch (msg.code) {
+        // data parsing
+        let re = /\0/g;
+        let str = data.toString().replace(re, "");
+        let msg = JSON.parse(str);
+
+        switch (msg.code) {
             case 'booth':
-				let sensorBooth = {code: 'median', device: 'booth', value: msg.smoke}; 
-				writeData(clients['process'], JSON.stringify(sensorBooth)); 
-				
-				let undefinedSend = {code: 'undefined', trash: msg.trash, lat: msg.lat, lon: msg.lon};
+                let sensorBooth = {code: 'median', device: 'booth', value: msg.smoke};
+                writeData(clients['process'], JSON.stringify(sensorBooth));
+
+                let boothSend = {trash: msg.trash, lat: msg.lat, lon: msg.lon};
+                io.sockets.emit('gps', JSON.stringify(boothSend));
                 break;
 
             case 'kiosk' :
-				let sensorKiosk = {code: 'median', device: 'kiosk', value: msg.smoke}; 
-				writeData(clients['process'], JSON.stringify(sensorKiosk)); 
+                let sensorKiosk = {code: 'median', device: 'kiosk', value: msg.smoke};
+                writeData(clients['process'], JSON.stringify(sensorKiosk));
                 break;
 
             case 'register':
-				clients[msg.service] = client; 
-                console.log(msg.service  + ' 서비스 등록 성공');
-				let register = {code: 'register', response: 'successful'}; 
-                writeData(clients[msg.service], JSON.stringify(register)); 
+                clients[msg.service] = client;
+                console.log(msg.service + ' 서비스 등록 성공');
+                let register = {code: 'register', response: 'successful'};
+                writeData(clients[msg.service], JSON.stringify(register));
                 break;
-			
-			case 'median': 
-				if (msg.device === 'booth') {
-					console.log('booth median  ' + msg.value); 
-				} else {
-					console.log('kiosk median  ' + msg.value);
-				}
-				break;
+
+            case 'median':
+                if (msg.device === 'booth') {
+                    // console.log('booth median  ' + msg.value);
+                } else {
+                    console.log('kiosk median  ' + msg.value);
+                }
+                break;
 
 			case 'login':
 				console.log(msg);
@@ -64,11 +78,11 @@ const server = net.createServer(function (client) {
         }
     });
 
-client.on('end', function () {
+    client.on('end', function () {
         console.log('Client disconnected');
         clients.splice(this);
-        server.getConnections(function (err, count) {
-        console.log('Remaining Connections: ' + count);
+        tcpServer.getConnections(function (err, count) {
+            console.log('Remaining Connections: ' + count);
         });
     });
     client.on('error', function (err) {
@@ -79,12 +93,12 @@ client.on('end', function () {
     });
 });
 
-server.listen(5001, function () {
-    console.log('Server listening: ' + JSON.stringify(server.address()));
-    server.on('close', function () {
+tcpServer.listen(5001, function () {
+    console.log('Server listening: ' + JSON.stringify(tcpServer.address()));
+    tcpServer.on('close', function () {
         console.log('Server Terminated');
     });
-    server.on('error', function (err) {
+    tcpServer.on('error', function (err) {
         console.log('Server Error: ', JSON.stringify(err));
     });
 });

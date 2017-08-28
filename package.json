@@ -13,6 +13,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+<<<<<<< HEAD
+=======
+    "express": "^4.15.4",
+>>>>>>> cd54110f5fa8a32e9a6bead93d396ece926755b5
     "socket.io": "^2.0.3"
   }
 }
