@@ -2,7 +2,7 @@ const net = require('net');
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app).listen(5002, function () {
-    console.log('Web socket server running at 5002 port!!')
+    console.log('Web socket server running at 5002 port!!');
 });
 const io = require('socket.io').listen(http);
 
@@ -32,8 +32,9 @@ const tcpServer = net.createServer(function (client) {
                 let sensorBooth = {code: 'median', device: 'booth', value: msg.smoke};
                 writeData(clients['process'], JSON.stringify(sensorBooth));
 
-                let boothSend = {trash: msg.trash, lat: msg.lat, lon: msg.lon};
-                io.sockets.emit('gps', JSON.stringify(boothSend));
+                let gpsSend = {lat: msg.lat, lon: msg.lon};
+                io.sockets.emit('gps', JSON.stringify(gpsSend));
+				io.sockets.emit('trash', msg.trash); 
                 break;
 
             case 'kiosk' :
@@ -68,6 +69,7 @@ const tcpServer = net.createServer(function (client) {
 
 			case 'sign': 
 				console.log(msg); 
+				writeData(clients['process'], JSON.stringify(msg)); 
 				break; 
 
             default:
