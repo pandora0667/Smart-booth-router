@@ -20,12 +20,13 @@ const tcpServer = net.createServer(function (client) {
     console.log('   local = %s:%s', client.localAddress, client.localPort);
     console.log('   remote = %s:%s', client.remoteAddress, client.remotePort);
     client.setEncoding('utf8');
+	let count = 0;
 
     client.on('data', function (data) {
         // data parsing
         let re = /\0/g;
         let str = data.toString().replace(re, "");
-        let msg = JSON.parse(str);
+        let msg = JSON.parse(str); 
 
         switch (msg.code) {
             case 'booth':
@@ -53,7 +54,15 @@ const tcpServer = net.createServer(function (client) {
                 if (msg.device === 'booth') {
                     io.sockets.emit('booth', msg.value); 
                 } else {
-					io.sockets.emit('kiosk', msg.value); 
+					io.sockets.emit('kiosk', msg.value);
+					let media = {value: msg.value}; 
+					
+					if (msg.value >= 100 && count == 1) {
+						writeData(clients['media'], JSON.stringify(media)); 
+						count++; 
+					} else if (msg.value < 100 && count !==1) {
+						count = 1;
+					}
                 }
                 break;
 
@@ -74,6 +83,7 @@ const tcpServer = net.createServer(function (client) {
 
             default:
                 console.log("error");
+				console.log(msg); 
                 let error = {code: 'error', title: 'undefined', message: 'undefined'};
                 broadcastData(JSON.stringify(error));
                 break;
