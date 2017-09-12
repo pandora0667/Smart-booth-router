@@ -31,7 +31,8 @@ const tcpServer = net.createServer(function (client) {
         switch (msg.code) {
             case 'booth':
                 let sensorBooth = {code: 'median', device: 'booth', value: msg.smoke};
-                writeData(clients['process'], JSON.stringify(sensorBooth));
+				if (clients['process'])
+					writeData(clients['process'], JSON.stringify(sensorBooth));
 
                 let gpsSend = {lat: msg.lat, lon: msg.lon};
                 io.sockets.emit('gps', JSON.stringify(gpsSend));
@@ -40,14 +41,16 @@ const tcpServer = net.createServer(function (client) {
 
             case 'kiosk' :
                 let sensorKiosk = {code: 'median', device: 'kiosk', value: msg.smoke};
-                writeData(clients['process'], JSON.stringify(sensorKiosk));
+                if (clients['process'])
+					writeData(clients['process'], JSON.stringify(sensorKiosk));
                 break;
 
             case 'register':
                 clients[msg.service] = client;
                 console.log(msg.service + ' 서비스 등록 성공');
                 let register = {code: 'register', response: 'successful'};
-                writeData(clients[msg.service], JSON.stringify(register));
+				if (clients[msg.service])
+					writeData(clients[msg.service], JSON.stringify(register));
                 break;
 
             case 'median':
@@ -58,8 +61,10 @@ const tcpServer = net.createServer(function (client) {
 					let media = {value: msg.value}; 
 					
 					if (msg.value >= 100 && count == 1) {
-						writeData(clients['media'], JSON.stringify(media)); 
-						count++; 
+						if (clients['media']) { 
+							writeData(clients['media'], JSON.stringify(media)); 
+							count++; 
+						}
 					} else if (msg.value < 100 && count !==1) {
 						count = 1;
 					}
@@ -68,17 +73,20 @@ const tcpServer = net.createServer(function (client) {
 
 			case 'login':
 				console.log(msg);
-				writeData(clients['process'], JSON.stringify(msg)); 
+				if (clients['process'])
+					writeData(clients['process'], JSON.stringify(msg)); 
 				break; 
 
 			case 'result': 
-				console.log(msg); 
-				writeData(clients['service'], JSON.stringify(msg)); 
+				console.log(msg);
+				if (clients['service'])
+					writeData(clients['service'], JSON.stringify(msg)); 
 				break; 
 
 			case 'sign': 
 				console.log(msg); 
-				writeData(clients['process'], JSON.stringify(msg)); 
+				if (clients['process'])
+					writeData(clients['process'], JSON.stringify(msg)); 
 				break; 
 
             default:
