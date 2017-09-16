@@ -26,9 +26,14 @@ const tcpServer = net.createServer(function (client) {
 
     client.on('data', function (data) {
         // data parsing
-        let re = /\0/g;
-        let str = data.toString().replace(re, "");
-        let msg = JSON.parse(str);
+        let msg = null;
+        try {
+            let re = /\0/g;
+            let str = data.toString().replace(re, "");
+            msg = JSON.parse(str);
+        } catch (exception) {
+            console.log('오류 발생');
+        }
 
         switch (msg.code) {
             case 'booth':
