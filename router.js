@@ -1,3 +1,5 @@
+'use strict';
+
 const net = require('net');
 const express = require('express');
 const app = express();
@@ -20,78 +22,71 @@ const tcpServer = net.createServer(function (client) {
     console.log('   local = %s:%s', client.localAddress, client.localPort);
     console.log('   remote = %s:%s', client.remoteAddress, client.remotePort);
     client.setEncoding('utf8');
-	let count = 0;
+    let count = 0;
 
     client.on('data', function (data) {
         // data parsing
         let re = /\0/g;
         let str = data.toString().replace(re, "");
-        let msg = JSON.parse(str); 
+        let msg = JSON.parse(str);
 
         switch (msg.code) {
             case 'booth':
                 let sensorBooth = {code: 'median', device: 'booth', value: msg.smoke};
-				if (clients['process'])
-					writeData(clients['process'], JSON.stringify(sensorBooth));
+                if (clients['process'])
+                    writeData(clients['process'], JSON.stringify(sensorBooth));
 
                 let gpsSend = {lat: msg.lat, lon: msg.lon};
                 io.sockets.emit('gps', JSON.stringify(gpsSend));
-				io.sockets.emit('trash', msg.trash); 
+                io.sockets.emit('trash', msg.trash);
                 break;
 
             case 'kiosk' :
                 let sensorKiosk = {code: 'median', device: 'kiosk', value: msg.smoke};
                 if (clients['process'])
-					writeData(clients['process'], JSON.stringify(sensorKiosk));
+                    writeData(clients['process'], JSON.stringify(sensorKiosk));
                 break;
 
             case 'register':
                 clients[msg.service] = client;
                 console.log(msg.service + ' 서비스 등록 성공');
                 let register = {code: 'register', response: 'successful'};
-				if (clients[msg.service])
-					writeData(clients[msg.service], JSON.stringify(register));
+                if (clients[msg.service])
+                    writeData(clients[msg.service], JSON.stringify(register));
                 break;
 
             case 'median':
-                if (msg.device === 'booth') {
-                    io.sockets.emit('booth', msg.value); 
-                } else {
-					io.sockets.emit('kiosk', msg.value);
-					let media = {value: msg.value}; 
-					
-					if (msg.value >= 100 && count == 1) {
-						if (clients['media']) { 
-							writeData(clients['media'], JSON.stringify(media)); 
-							count++; 
-						}
-					} else if (msg.value < 100 && count !==1) {
-						count = 1;
-					}
+
+                if (msg.device === 'booth')
+                    io.sockets.emit('booth', msg.value);
+                else {
+                    io.sockets.emit('media', msg.value);
+                    io.sockets.emit('kiosk', msg.value);
                 }
+
                 break;
 
-			case 'login':
-				console.log(msg);
-				if (clients['process'])
-					writeData(clients['process'], JSON.stringify(msg)); 
-				break; 
+            case 'login':
+                console.log(msg);
+                if (clients['process'])
+                    writeData(clients['process'], JSON.stringify(msg));
+                break;
 
-			case 'result': 
-				console.log(msg);
-				if (clients['service'])
-					writeData(clients['service'], JSON.stringify(msg)); 
-				break; 
+            case 'result':
+                console.log(msg);
+                if (clients['service'])
+                    writeData(clients['service'], JSON.stringify(msg));
+                break;
 
-			case 'sign': 
-				console.log(msg); 
-				if (clients['process'])
-					writeData(clients['process'], JSON.stringify(msg)); 
-				break; 
+            case 'sign':
+                console.log(msg);
+                if (clients['process'])
+                    writeData(clients['process'], JSON.stringify(msg));
+                break;
 
             default:
                 console.log("error");
-				console.log(msg); 
+                console.log(msg);
                 let error = {code: 'error', title: 'undefined', message: 'undefined'};
                 broadcastData(JSON.stringify(error));
                 break;
